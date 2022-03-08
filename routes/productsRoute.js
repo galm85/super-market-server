@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const multer = require('multer');
-const Product = require('../models/productsModel');
+const Product = require('../models/Product.model');
 
 //multer config
 const storage = multer.diskStorage({
@@ -23,21 +23,48 @@ const upload = multer({storage:storage})
 //routes
 
 //get all products
+// router.get('/',async(req,res)=>{
+//     const products = await Product.find({});
+//     res.send(products);
+// })
+
 router.get('/',async(req,res)=>{
-    const products = await Product.find({});
+    const products = await Product.aggregate([
+        {
+            $lookup:{
+                from:'categories',
+                localField:'category_id',
+                foreignField:'_id',
+                as:'category'
+            }
+        },{
+            $lookup:{
+                from:'departments',
+                localField:'department_id',
+                foreignField:'_id',
+                as:'department'
+            }
+        }
+    ]);
     res.send(products);
 })
 
+
 //add new product
 router.post('/',upload.single('image'),async(req,res)=>{
-    let product = new Product(req.body);
-    if(req.file){
-        product.image = req.file.path;
-    }else{
-        product.image = './uploads/defultImages/noImage.png';
+    try{
+
+        let product = new Product(req.body);
+        if(req.file){
+            product.image = req.file.path;
+        }else{
+            product.image = './uploads/defultImages/noImage.png';
+        }
+        await product.save();
+        res.status(200).json({status:true,message:'Product Saved'});
+    }catch(error){
+        res.status(500).send({status:false,message:error});
     }
-    await product.save();
-    res.status(200).send('Product Saved');
 })
 
 
@@ -45,9 +72,9 @@ router.post('/',upload.single('image'),async(req,res)=>{
 router.delete('/delete-product/:id',async (req,res)=>{
     try {
         const response = await Product.findByIdAndRemove(req.params.id);
-        res.status(200).send(`${response.title} deleted`);
+        res.status(200).json({status:true,message:`${response.title} deleted`});
     } catch (error) {
-        res.status(400).send(error.message);
+        res.status(500).json({status:false,message:`Product did not delete`});
     }
 })
 
@@ -66,9 +93,9 @@ router.patch('/update-product/:id',upload.single('image'),async(req,res)=>{
 })
 
 //get products by category
-router.get('/:category',async(req,res)=>{
+router.get('/:categoryId',async(req,res)=>{
     try {
-        const products  = await Product.find({category:req.params.category});
+        const products  = await Product.find({category_id:req.params.categoryId});
         res.status(200).send(products);
     } catch (error) {
         res.status(400).send(error.message);

@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const multer = require('multer');
-const User = require('../models/usersModel');
-const Product = require('../models/productsModel');
+const User = require('../models/User.model');
+const Product = require('../models/Product.model');
 const bcrypt = require('bcrypt');
 
 //multer config
@@ -57,13 +57,14 @@ router.post('/',upload.single('image'),async(req,res)=>{
 
 //sign in user
 router.post('/sign-in',async(req,res)=>{
+    
     const user = await User.findOne({email:req.body.email});
-    if(!user) return res.status(500).send('Wrong Email or Password');
+    if(!user) return res.status(200).json({status:false,message:'Wrong Email or Password'});
 
     const compare = await bcrypt.compare(req.body.password,user.password);
-    if(!compare) return res.status(500).send('Wrong Email or Password');
+    if(!compare) return res.status(200).json({status:false,message:'Wrong Email or Password'});
 
-    res.status(200).send(user.generateToken());
+    res.status(200).json({status:true,message:'Welcome Back '+ user.firstName,token:user.generateToken()});
 })
 
 

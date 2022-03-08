@@ -10,10 +10,11 @@ const productsRoute = require('./routes/productsRoute');
 const categoriesRoute = require('./routes/categoriesRoute');
 const usersRoute = require('./routes/usersRoute');
 const ordersRoute = require('./routes/ordersRoute');
+const departmentsRoutes = require('./routes/departmentsRoute');
+const cartsRoutes = require('./routes/cartsRoute');
 
 //Connect to mongod
-mongoose.connect(process.env.MONGO_URL,{
-    useFindAndModify:false,
+mongoose.connect(process.env.MONGO_URL_DEV,{
     useUnifiedTopology:true,
     useNewUrlParser:true,
 }).then(console.log('Connect to MongoDB'))
@@ -32,6 +33,8 @@ app.use('/products',productsRoute);
 app.use('/categories',categoriesRoute);
 app.use('/users',usersRoute);
 app.use('/orders',ordersRoute);
+app.use('/departments',departmentsRoutes);
+app.use('/carts',cartsRoutes);
 
 
 

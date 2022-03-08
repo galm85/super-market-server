@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const multer = require('multer');
-const Categorie = require('../models/categoriesModel');
+const Categorie = require('../models/Category.Model');
 
 //multer config
 const storage = multer.diskStorage({
@@ -30,23 +30,31 @@ router.get('/',async(req,res)=>{
 //add new Category
 router.post('/',upload.single('image'),async(req,res)=>{
     
-    let categorie = new Categorie(req.body);
-    if(req.file){
-        categorie.image = req.file.path;
-    }else{
-        categorie.image = './uploads/defultImages/noImage.png';
+   
+
+    try{
+
+        let categorie = new Categorie(req.body);
+        if(req.file){
+            categorie.image = req.file.path;
+        }else{
+            categorie.image = './uploads/defultImages/noImage.png';
+        }
+        await categorie.save();
+        res.status(200).send({status:true,message:'categorie saved'});
+    }catch(err){
+        res.status(500).send({status:false,message:'categorie saved '+err});
+
     }
-    await categorie.save();
-    res.send('categorie saved');
 })
 
 //delete category
 router.delete('/remove-category/:id',async(req,res)=>{
     try {
         const response = await Categorie.findByIdAndRemove(req.params.id);
-        res.status(200).send('Category ' + response.title + ' deleted');
+        res.status(200).json({status:true,message:'Category ' + response.title + ' deleted'});
     } catch (error) {
-        res.status(400).send(error.message);
+        res.status(500).json({status:false,message:error.message});
     }
 })
 
@@ -69,6 +77,21 @@ router.patch('/update-category/:id',upload.single('image'),async(req,res)=>{
     
 
 })
+
+
+
+//get all categories by department ID
+router.get('/category-by-department/:departmentId',async(req,res)=>{
+
+    try{
+        const categories = await Categorie.find({department_id:  req.params.departmentId});
+        res.status(200).json({status:true,categories:categories});
+    }catch(err){
+        res.status(500).json({status:false,message:err});
+    }
+
+})
+
 
 
 
