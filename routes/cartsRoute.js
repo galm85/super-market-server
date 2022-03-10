@@ -9,9 +9,11 @@ const Cart = require('../models/Cart.model');
 router.get('/:userId',async(req,res)=>{
 
     const cart = await Cart.findOne({userId:req.params.userId});
+    
     if(cart){
+        let items = cart.items.reverse();
         
-        return res.status(200).json({status:true,cart:cart});
+        return res.status(200).json({status:true,cart:items});
     }else{
         return res.status(200).json({status:false,message:"No Cart"});
     }
@@ -86,7 +88,7 @@ router.patch('/update-amount',async(req,res)=>{
 
                 if(op == "+"){
                     element.amount ++;
-                }else if(op == "-" && element.amount > 2){
+                }else if(op == "-" && element.amount > 1){
                     element.amount --;
                 }
             }
@@ -103,7 +105,7 @@ router.patch('/update-amount',async(req,res)=>{
 
 //remove item from cart
 router.patch('/remove-item',async(req,res)=>{
-
+    
     try{
 
         const userId = req.body.userId;

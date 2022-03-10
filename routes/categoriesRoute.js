@@ -23,9 +23,38 @@ const upload = multer({storage:storage})
 
 //get all categories
 router.get('/',async(req,res)=>{
-    const categories = await Categorie.find({});
+    const categories = await Categorie.aggregate([
+        {
+            $lookup:{
+                from:'departments',
+                localField:'department_id',
+                foreignField:'_id',
+                as:'department'
+            }
+        }
+    ]);
     res.send(categories);
 })
+
+//GET USING POPULATE
+// ====================================================
+// router.get('/',async(req,res)=>{
+//     let categories = await Categorie.find({}).populate('department_id','title');
+    
+//     categories = categories.map(cat=> {
+//         return {
+//             _id:cat._id,
+//             title:cat.title,
+//             image:cat.image,
+//             location:cat.location,
+//             department_id:cat.department_id._id,
+//             department: cat.department_id.title
+//         }
+//     });
+    
+//     res.send(categories);
+  
+// })
 
 //add new Category
 router.post('/',upload.single('image'),async(req,res)=>{
