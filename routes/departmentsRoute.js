@@ -32,9 +32,8 @@ router.get('/',async(req,res)=>{
 })
 
 
-//add new Category
+//add new Department
 router.post('/',upload.single('image'),async(req,res)=>{
-    
     try{
         let department = new Department(req.body);
         if(req.file){
@@ -43,37 +42,45 @@ router.post('/',upload.single('image'),async(req,res)=>{
             department.image = './uploads/defultImages/noImage.png';
         }
         await department.save();
-        res.status(200).send('department saved');
+        return res.status(200).json({status:true,message:'department saved'});
     }catch(error){
-        res.status(400).send(error)
-    }
-})
-
-//delete category
-router.delete('/remove-category/:id',async(req,res)=>{
-    try {
-        const response = await Categorie.findByIdAndRemove(req.params.id);
-        res.status(200).send('Category ' + response.title + ' deleted');
-    } catch (error) {
-        res.status(400).send(error.message);
-    }
-})
-
-//edit category
-router.patch('/update-category/:id',upload.single('image'),async(req,res)=>{
-    if(req.file){
+        return res.status(200).json({status:false,message:error.message});
         
-        let updateCategory = (req.body)
-        if(req.file){
-            updateCategory.image = req.file.path;
+    }
+})
+
+//delete Department
+router.delete('/remove-department/:id',async(req,res)=>{
+ 
+    try {
+        const response = await Department.findByIdAndRemove(req.params.id);
+        res.status(200).json({status:true,message:'Department ' + response.title + ' deleted'});
+    } catch (error) {
+        res.status(200).json({status:false,message:error.message});
+    }
+})
+
+//edit Department
+router.patch('/update-department/:id',upload.single('image'),async(req,res)=>{
+    
+    try{
+        if(req.file){    
+            let updateDepartment = (req.body)
+            if(req.file){
+                updateDepartment.image = req.file.path;
+            }
+            
+            const response = await Department.findByIdAndUpdate(req.params.id,updateDepartment);
+            return res.status(200).json({status:true,message:"Department "+response.title+ " updated"});
         }
         
-        const response = await Categorie.findByIdAndUpdate(req.params.id,updateCategory);
-        return res.send("category "+response.title+ " updated");
-    }
+        const response = await Department.findByIdAndUpdate(req.params.id,req.body);
+        return res.status(200).json({status:true,message:"Department "+response.title+ " updated"});
+    
+    }catch(err){
+        return res.status(200).json({status:false,message:err.message});
 
-    const response = await Categorie.findByIdAndUpdate(req.params.id,req.body);
-    return res.send("category "+response.title+ " updated");
+    }
 
     
 

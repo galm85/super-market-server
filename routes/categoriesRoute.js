@@ -89,19 +89,25 @@ router.delete('/remove-category/:id',async(req,res)=>{
 
 //edit category
 router.patch('/update-category/:id',upload.single('image'),async(req,res)=>{
-    if(req.file){
-        
-        let updateCategory = (req.body)
+    try{
+
         if(req.file){
-            updateCategory.image = req.file.path;
+            
+            let updateCategory = (req.body)
+            if(req.file){
+                updateCategory.image = req.file.path;
+            }
+            
+            const response = await Categorie.findByIdAndUpdate(req.params.id,updateCategory);
+            return res.json({status:true,message:"category "+response.title+ " updated"});
         }
         
-        const response = await Categorie.findByIdAndUpdate(req.params.id,updateCategory);
-        return res.send("category "+response.title+ " updated");
-    }
+        const response = await Categorie.findByIdAndUpdate(req.params.id,req.body);
+        return res.json({status:true,message:"category "+response.title+ " updated"});
+    }catch(err){
+        return res.json({status:false,message:err});
 
-    const response = await Categorie.findByIdAndUpdate(req.params.id,req.body);
-    return res.send("category "+response.title+ " updated");
+    }
 
     
 

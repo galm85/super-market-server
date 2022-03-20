@@ -27,31 +27,40 @@ const upload = multer({storage:storage})
 
 //get all users
 router.get('/',async(req,res)=>{
-    const users = await User.find({});
-    res.send(users);
+    try {
+        const users = await User.find({});
+        return res.status(200).json({status:true,users});
+        
+        
+    } catch (error) {
+        return res.status(200).json({status:false,message:error});
+        
+    }
 })
 
 //add new user - register
 router.post('/',upload.single('image'),async(req,res)=>{
+    
     let user = await User.findOne({email:req.body.email});
     if(user){
-        return res.status(400).send('Email is already taken');
+        return res.status(200).json({status:false,message:'Email is already taken'});
     }
     const salt = await bcrypt.genSalt(10);
 
     user = new User(req.body);
-    if(user.password.length <6){
-       return res.status(400).send('Password must be al least 6 char')
-    }
+
+    if(user.password.length <6) return res.status(200).json({status:false,message:'Password must be al least 6 char'});
+
     if(req.file){
         user.image = req.file.path;
     }else{
         user.image = '/uploads/defultImages/no-user.jpeg'
     }
+    
     user.password = await bcrypt.hash(req.body.password,salt);
 
     await user.save();
-    res.send('user saved');
+    res.json({status:true,message:`Welcome ${user.firstName}, Please Sign in`});
 })
 
 
@@ -195,5 +204,32 @@ router.patch('/orders/checkout/:userId',async(req,res)=>{
         console.log(error)
     }
 })
+
+
+
+
+router.patch('/change-password/:userId',async(req,res)=>{
+
+    try{
+        const user = await User.findById(req.params.userId);
+        const valid = await bcrypt.compare(req.body.oldPassword,user.password);
+        if(!valid){
+            return res.status(200).json({status:false,message:'Wrong Password'});
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const newPassword = await bcrypt.hash(req.body.newPassword,salt);
+
+        await User.findByIdAndUpdate(req.params.userId,{password:newPassword});
+        return res.status(200).json({status:true,message:'Password Changed'})
+
+    }catch(error){
+        return res.status(200).json({status:false,message:error.message});
+
+    }
+
+})
+
+
 
 module.exports = router;
