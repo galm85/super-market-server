@@ -14,7 +14,7 @@ const departmentsRoutes = require('./routes/departmentsRoute');
 const cartsRoutes = require('./routes/cartsRoute');
 
 //Connect to mongod
-mongoose.connect(process.env.MONGO_URL_DEV,{
+mongoose.connect(process.env.MONGO_URL,{
     useUnifiedTopology:true,
     useNewUrlParser:true,
 }).then(console.log('Connect to MongoDB'))
